@@ -7,6 +7,7 @@ surf = wall nodes, from geometry only (sdf == 0). airfrans uses U_x == 0, i.e. t
 Run `python src/data.py` to build the cache and self-check against the airfrans library.
 """
 import json
+import os
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -15,6 +16,8 @@ import pyvista as pv
 
 DATA = Path(__file__).resolve().parents[2] / "data"  # same layout locally and on clusters: <root>/{airfrans-physics-ml,data}
 DATASET, CACHE = DATA / "Dataset", DATA / "cache"
+# ponytail: assumes 2 HW threads/core (local machine: 52 threads = 26 cores); pass --workers explicitly in Slurm jobs
+WORKERS = max(1, len(os.sched_getaffinity(0)) // 2)
 
 
 def uinf_aoa(name):
@@ -55,6 +58,11 @@ def load(name):
     return d["x"], d["y"], d["surf"]
 
 
+def inputs(name):
+    """Inputs only (npz is lazy: the targets are never read). Use this for anything that touches test cases."""
+    return np.load(CACHE / f"{name}.npz")["x"]
+
+
 def splits(task):
     """task in {'full', 'scarce', 'aoa'}. Validation is carved out of the official train set only."""
     m = json.loads((DATASET / "manifest.json").read_text())
@@ -86,7 +94,7 @@ if __name__ == "__main__":
         print(t, {k: len(v) for k, v in sp.items()})
 
     CACHE.mkdir(exist_ok=True)
-    with Pool(4) as pool:
+    with Pool(WORKERS) as pool:
         for i, _ in enumerate(pool.imap_unordered(_cache_one, names), 1):
             if i % 100 == 0:
                 print(f"cached {i}/{len(names)}", flush=True)
