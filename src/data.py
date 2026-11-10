@@ -12,10 +12,10 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
-import pyvista as pv
 
 DATA = Path(__file__).resolve().parents[2] / "data"  # same layout locally and on clusters: <root>/{airfrans-physics-ml,data}
 DATASET, CACHE = DATA / "Dataset", DATA / "cache"
+RUNS = DATA.parent / "runs"  # training runs, predictions, entries (outside the repo)
 # ponytail: assumes 2 HW threads/core (local machine: 52 threads = 26 cores); pass --workers explicitly in Slurm jobs
 WORKERS = max(1, len(os.sched_getaffinity(0)) // 2)
 
@@ -26,6 +26,8 @@ def uinf_aoa(name):
 
 
 def read_case(name, root=DATASET):
+    import pyvista as pv  # only needed to build the cache: training envs (clusters) need just numpy + torch
+
     vol = pv.read(root / name / f"{name}_internal.vtu")
     foil = pv.read(root / name / f"{name}_aerofoil.vtp")
     uinf, aoa = uinf_aoa(name)

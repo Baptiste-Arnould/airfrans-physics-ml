@@ -1,0 +1,10 @@
+# MLP v2 = configs/mlp.toml + NACA parameters as inputs (global geometry). Only change vs v1.
+task = "full"
+naca = true         # + 7 inputs: XX, is_5digit, M, P (4-digit), L, P, Q (5-digit)
+seed = 0
+width = 256
+depth = 5
+steps = 100_000
+batch = 65_536
+lr = 1e-3
+val_every = 2_000

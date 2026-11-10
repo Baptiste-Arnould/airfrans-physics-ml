@@ -1,0 +1,11 @@
+# δ sweep = configs/mlp_naca_wall.toml (δ = 100 µm, 100k) with 300k steps and δ = 300 µm
+task = "full"
+naca = true         # + 7 inputs: XX, is_5digit, M, P (4-digit), L, P, Q (5-digit)
+seed = 0
+width = 256
+depth = 5
+steps = 300_000
+batch = 65_536
+lr = 1e-3
+val_every = 2_000
+delta = 300e-6       # m: U/U_inf = (1 - exp(-d/delta)) * N, loss on N (wall friction as direct output)
